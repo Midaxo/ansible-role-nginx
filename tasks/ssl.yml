@@ -1,4 +1,5 @@
 - name: create ssl base folder
+  become: yes
   file: 
     path: "{{nginx_ssl_store_path}}" 
     state: directory
@@ -8,17 +9,20 @@
     setype: httpd_config_t
 
 - name: check if dhparams are generated
+  become: yes
   stat: 
     path: "{{nginx_ssl_store_path}}/dhparams.pem"
   register: st
 
 - name: generate dhparams
+  become: yes
   shell: 'openssl dhparam -out {{nginx_ssl_store_path}}/dhparams.pem {{dh_size}}'
   when: st.stat.exists == False
   notify:
   - restart nginx
 
 - name: chown dhparams
+  become: yes
   file: 
     path: "{{nginx_ssl_store_path}}/dhparams.pem" 
     state: file
@@ -30,6 +34,7 @@
   - restart nginx
 
 - name: copy ssl-certificates and keys
+  become: yes
   copy:
     content: "{{ item.content }}"
     dest: "{{nginx_ssl_store_path}}/{{ item.name }}"
