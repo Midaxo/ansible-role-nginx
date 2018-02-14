@@ -1,4 +1,5 @@
 - name: copy nginx.conf
+  become: yes
   template:
     src: "../templates/{{ item }}.j2"
     dest: "{{nginx_path}}/{{ item }}"
@@ -12,6 +13,7 @@
     - reload nginx
 
 - name: create sites-enabled folder
+  become: yes
   file: 
     path: "{{nginx_path}}/sites-enabled" 
     state: directory
@@ -20,6 +22,7 @@
     mode: 0644
 
 - name: create sites-available folder
+  become: yes
   file: 
     path: "{{nginx_path}}/sites-available"
     state: directory
@@ -28,11 +31,13 @@
     mode: 0644
 
 - name: make rules directory
+  become: yes
   file:
     path: "{{nginx_path}}/rules"
     state: directory
 
 - name: copy other useful config files
+  become: yes
   copy:
     src: files/{{item}}
     dest: "{{nginx_path}}/rules/{{item}}"
@@ -46,6 +51,7 @@
     - reload nginx
 
 - name: copy vhosts
+  become: yes
   copy:
     content: "{{item.content}}"
     dest: "{{nginx_path}}/sites-available/{{ item.name }}"
@@ -57,6 +63,7 @@
     - reload nginx
 
 - name: create vhosts symlinks
+  become: yes
   file: 
     src: "{{nginx_path}}/sites-available/{{ item.name }}" 
     dest: "{{nginx_path}}/sites-enabled/{{ item.name }}" 
@@ -69,20 +76,21 @@
     - reload nginx
 
 - name: make sure the default site is not there
+  become: yes
   file:
     path: "{{nginx_path}}/sites-enabled/default"
     state: absent
-  become: yes
   notify:
     - reload nginx
   register: isdefault
 
 - name: reload nginx
-  shell: nginx -s reload
   become: yes
+  shell: nginx -s reload
   when: isdefault.changed
 
 - name: configure fail2ban for nginx
+  become: yes
   copy:
     dest: /etc/fail2ban/jail.d/nginx
     content: |
@@ -90,7 +98,6 @@
      enabled=true
      [nginx-botsearch]
      enabled=true
-  become: yes
   notify:
     - restart fail2ban
   when: nginx_fail2ban is defined and nginx_fail2ban

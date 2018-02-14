@@ -1,4 +1,5 @@
 - name: enable firewalld service
+  become: yes
   service:
     name: firewalld
     state: started
@@ -6,6 +7,7 @@
   tags: firewalld
 
 - name: configure firewalld
+  become: yes
   firewalld: "port={{item}}/tcp permanent=true state=enabled"
   notify: restart firewalld
   with_items: "{{firewalld_open_ports}}"
